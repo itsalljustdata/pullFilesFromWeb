@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 import os
-from pprint import pprint
+#from pprint import pprint
 import platform
 import  getpass
 import subprocess
@@ -71,6 +71,7 @@ def ensureWritable(theFile : Path):
 def thisOne(theDict : dict) -> dict:
 
     outFile = Path(theDict['destination']).expanduser()
+    print (str(outFile))
     ensureWritable (outFile)
 
     def _theFileTime (theFile):
