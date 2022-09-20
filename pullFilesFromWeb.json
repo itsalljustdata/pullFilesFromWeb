@@ -8,6 +8,6 @@
         "new": "exec sudo wg show all dump"
       }
     ],
-    "chmod": "0o755",
+    "chmod": "0o755"
   }
 ]

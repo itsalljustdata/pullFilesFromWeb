@@ -6,6 +6,42 @@ from pathlib import Path
 from datetime import datetime
 import os
 from pprint import pprint
+import platform
+import  getpass
+import subprocess
+
+def captureCommand (theCommand : str, timeout : int = 15):
+    tmp = ""
+    if isinstance(theCommand,list):
+        theCommand = ' '.join(theCommand)
+    # LOGGER.debug (theCommand)
+
+    p = subprocess.Popen(theCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        stdout, stderr = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired as te:
+        print (str(te))
+        p.kill()
+        raise
+
+    def fixTup (stdSomething):
+        if not stdSomething:
+            return None
+        stdSomething = stdSomething.decode('utf-8').split('\n')
+        stdSomething = [s for s in stdSomething if s]
+        if len(stdSomething) == 0:
+            return None
+        elif len(stdSomething) == 1:
+            return stdSomething[0]
+        else:
+            return stdSomething
+    
+    output = (fixTup(stdout)
+             ,fixTup(stderr)
+             ,theCommand
+             )
+        
+    return output
 
 def ensureWritable(theFile : Path):
 
@@ -27,7 +63,7 @@ def ensureWritable(theFile : Path):
 
     for c in check:
         if not os.access(c, os.W_OK):
-            raise PermissionError (f"User '{os.getlogin()}' has no permissions to write to '{c}'")
+            raise PermissionError (f"User '{getpass.getuser()}' has no permissions to write to '{c}'")
 
     if createDir:
         theDir.mkdir(exist_ok = True, parents = True)
@@ -100,4 +136,19 @@ def retrieveFromJSON(jsonFile : Path) -> list:
     return links
 
 if __name__ == '__main__':
-    retrieveFromJSON(Path(__file__).with_suffix('.json'))
+    jsonExt     = '.json'
+    machineJSON = Path(__file__).parent.joinpath(f"_{platform.node()}{jsonExt}")
+    
+    if not machineJSON.is_file():
+        defaultJSON = Path(__file__).with_suffix(jsonExt)
+        machineJSON.write_text(defaultJSON.read_text())
+        try:
+            uid = captureCommand(['id','-u',os.getlogin()])[0]
+            gid = captureCommand(['id','-g',uid])[0]
+            captureCommand(['chown',f'{uid}:{gid}',str(machineJSON)])
+        except:
+            ...
+
+    ensureWritable (machineJSON)
+
+    retrieveFromJSON(machineJSON)
