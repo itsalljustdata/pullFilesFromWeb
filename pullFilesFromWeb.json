@@ -1,0 +1,13 @@
+[
+  {
+    "destination": "/usr/local/bin/wg-json",
+    "url": "https://raw.githubusercontent.com/WireGuard/wireguard-tools/master/contrib/json/wg-json",
+    "replace": [
+      {
+        "old": "exec wg show all dump",
+        "new": "exec sudo wg show all dump"
+      }
+    ],
+    "chmod": "0o755",
+  }
+]
